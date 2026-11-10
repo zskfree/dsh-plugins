@@ -1,0 +1,3 @@
+- insert:
+    - id: lambda-dashboard
+      name: dsh-lambda-dashboard
