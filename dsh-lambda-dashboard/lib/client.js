@@ -77,6 +77,36 @@ window.__ModuleLoader__.load({
       };
     }
 
+    const actionButtonStyle = {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      height: 32,
+      minHeight: 32,
+      maxHeight: 32,
+      boxSizing: 'border-box',
+      padding: '6px 10px',
+      border: '1px solid color-mix(in srgb, currentColor 18%, transparent)',
+      borderRadius: 7,
+      background: 'color-mix(in srgb, currentColor 6%, transparent)',
+      color: 'inherit',
+      font: 'inherit',
+      fontSize: 13,
+      lineHeight: 1.2,
+      cursor: 'pointer',
+      transition: 'background 120ms ease, border-color 120ms ease, transform 120ms ease',
+    };
+    const actionIconStyle = { display: 'inline-flex', width: 16, height: 16, alignItems: 'center', justifyContent: 'center', fontSize: 15, lineHeight: 1 };
+    const actionGroupStyle = { display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' };
+    const actionLabelStyle = { fontSize: 12, opacity: 0.62, whiteSpace: 'nowrap' };
+    const actionButton = (icon, label, props = {}) => element('button', {
+      type: 'button',
+      ...props,
+      className: `lambda-action ${props.className || ''}`.trim(),
+      style: { ...actionButtonStyle, ...(props.style || {}) },
+    }, element('span', { 'aria-hidden': true, style: actionIconStyle }, icon), element('span', null, label));
+
     function Dashboard() {
       const url = dashboardUrl;
       const [failed, setFailed] = React.useState(false);
@@ -124,17 +154,25 @@ window.__ModuleLoader__.load({
         } catch { setAuthMessage('无法清除本机设置。'); }
       };
       return element('section', { style: { display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 } },
-        element('header', { style: { display: 'flex', gap: 12, alignItems: 'center', padding: 12, flexWrap: 'wrap' } },
-          element('strong', null, title),
-          element('a', { href: url, target: '_blank', rel: 'noopener noreferrer' }, '独立打开'),
-          bridge ? element('button', { type: 'button', onClick: () => setEditing((value) => !value) }, saved ? '修改自动登录密码' : '设置自动登录') : null,
-          bridge && saved ? element('button', { type: 'button', onClick: forgetPassword }, '忘记密码') : null,
-          bridge ? element('button', { type: 'button', onClick: () => setRevision((value) => value + 1) }, '重新加载') : null),
-        bridge && (!saved || editing) ? element('form', { onSubmit: savePassword, style: { display: 'flex', gap: 8, padding: '0 12px 12px', alignItems: 'center' } },
-          element('input', { ref: passwordInput, type: 'password', required: true, autoComplete: 'off', placeholder: '输入看板密码，仅需设置一次', 'aria-label': '自动登录密码' }),
-          element('button', { type: 'submit' }, '记住并登录')) : null,
-        authMessage ? element('p', { role: 'status' }, authMessage) : null,
-        (!bridge || failed) ? element('p', { role: 'alert' }, failed ? '网页加载失败，请检查网络或独立打开。' : '浏览器模式请独立打开；桌面程序支持内嵌。') : null,
+        element('style', null, '.lambda-action:hover { background: color-mix(in srgb, currentColor 12%, transparent) !important; border-color: color-mix(in srgb, currentColor 32%, transparent) !important; } .lambda-action:active { transform: translateY(1px); } .lambda-action:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }'),
+        element('header', { style: { display: 'flex', gap: 12, alignItems: 'center', padding: '10px 12px', flexWrap: 'wrap', borderBottom: '1px solid color-mix(in srgb, currentColor 10%, transparent)' } },
+          element('strong', { style: { marginRight: 'auto', fontSize: 14, letterSpacing: 0 } }, title),
+          element('nav', { 'aria-label': '看板操作', style: { display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' } },
+            element('div', { style: actionGroupStyle },
+              element('span', { style: actionLabelStyle }, '访问'),
+              element('a', { href: url, target: '_blank', rel: 'noopener noreferrer', className: 'lambda-action', title: '在独立窗口打开看板', 'aria-label': '在独立窗口打开看板', style: { ...actionButtonStyle, textDecoration: 'none', color: 'inherit' } },
+                element('span', { 'aria-hidden': true, style: actionIconStyle }, '↗'), element('span', null, '独立打开'))),
+            bridge ? element('div', { style: actionGroupStyle },
+              element('span', { style: actionLabelStyle }, '本机设置'),
+              actionButton('⌕', saved ? '修改自动登录密码' : '设置自动登录', { onClick: () => setEditing((value) => !value), title: saved ? '修改自动登录密码' : '设置自动登录' }),
+              bridge && saved ? actionButton('×', '忘记密码', { onClick: forgetPassword, title: '清除本机保存的密码' }) : null,
+              actionButton('↻', '重新加载', { onClick: () => setRevision((value) => value + 1), title: '重新加载看板页面' })) : null),
+        ),
+        bridge && (!saved || editing) ? element('form', { onSubmit: savePassword, style: { display: 'flex', gap: 8, padding: '10px 12px 12px', alignItems: 'center', flexWrap: 'wrap', background: 'color-mix(in srgb, currentColor 4%, transparent)' } },
+          element('input', { ref: passwordInput, type: 'password', required: true, autoComplete: 'off', placeholder: '输入看板密码，仅需设置一次', 'aria-label': '自动登录密码', style: { flex: '1 1 240px', minWidth: 0, minHeight: 32, padding: '6px 9px', borderRadius: 6, border: '1px solid color-mix(in srgb, currentColor 20%, transparent)', background: 'transparent', color: 'inherit', font: 'inherit' } }),
+          element('button', { type: 'submit', style: { ...actionButtonStyle, fontWeight: 600, background: 'color-mix(in srgb, currentColor 12%, transparent)' } }, element('span', { 'aria-hidden': true, style: actionIconStyle }, '✓'), element('span', null, '记住并登录'))) : null,
+        authMessage ? element('p', { role: 'status', style: { margin: '8px 12px', fontSize: 12, lineHeight: 1.5 } }, authMessage) : null,
+        (!bridge || failed) ? element('p', { role: 'alert', style: { margin: '8px 12px', fontSize: 12, lineHeight: 1.5 } }, failed ? '网页加载失败，请检查网络或独立打开。' : '浏览器模式请独立打开；桌面程序支持内嵌。') : null,
         element('div', { ref: container, style: { display: 'flex', flex: 1, minHeight: 0 } }));
     }
 

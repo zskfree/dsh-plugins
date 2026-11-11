@@ -25,6 +25,16 @@ function register(plugin) {
   return { rows, dispose() { disposers.forEach((dispose) => dispose()); } };
 }
 
+function findElement(node, predicate) {
+  if (!node || typeof node !== 'object') return undefined;
+  if (predicate(node)) return node;
+  for (const child of node.children || []) {
+    const found = findElement(child, predicate);
+    if (found) return found;
+  }
+  return undefined;
+}
+
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
 test('host is inert; client registers Lambda额度管理 and matching page, with disposal', () => {
@@ -109,8 +119,8 @@ test('dashboard uses only HTTP and retains a safe browser fallback', () => {
   };
   const fixture = register(client(react));
   const dashboard = fixture.rows[0].component();
-  assert.equal(dashboard.children[0].children.find((child) => child?.type === 'a').props.href, 'http://47.115.165.231:30179/');
-  assert.equal(dashboard.children[0].children.filter((child) => child?.type === 'button').length, 0);
+  assert.equal(findElement(dashboard, (child) => child.type === 'a').props.href, 'http://47.115.165.231:30179/');
+  assert.equal(findElement(dashboard, (child) => child.type === 'button'), undefined);
   fixture.dispose();
 });
 
